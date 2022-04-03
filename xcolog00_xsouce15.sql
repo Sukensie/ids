@@ -188,17 +188,17 @@ CREATE TABLE objednavka_predmet
 
 -- naplněný tabulek daty
 
-INSERT INTO ZAMESTNANEC (jmeno, rodne_cislo, pohlavi, ulice, cislo_popisne, mesto, psc, cislo_prukazu, vycvik, vybaveni)
+INSERT INTO zamestnanec (jmeno, rodne_cislo, pohlavi, ulice, cislo_popisne, mesto, psc, cislo_prukazu, vycvik, vybaveni)
 VALUES ('Pepa Frajer', '010101001', 'boy', 'Semilaso', '25', 'Brno', '78032', '123', 'full', 'tazer');
 
-INSERT INTO ZAMESTNANEC (jmeno, rodne_cislo, pohlavi, ulice, cislo_popisne, mesto, psc, cislo_prukazu, vycvik, vybaveni)
-VALUES ('Pepka Frajerka', '010101001', 'micka', 'Semilaso', '25', 'Brno', '78032', '12', 'ultra', 'obušek');
+INSERT INTO zamestnanec (jmeno, rodne_cislo, pohlavi, ulice, cislo_popisne, mesto, psc, cislo_prukazu, vycvik, vybaveni)
+VALUES ('Josefina Hrdá', '010101001', 'gril', 'Semilaso', '25', 'Kuřim', '78032', '12', 'ultra', 'obušek');
 
 INSERT INTO vezeni (nazev, ulice, cislo_popisne, mesto, psc)
 VALUES ('Vezeni cool', 'Semilaso', '25', 'Brno', '78032');
 
 INSERT INTO vezeni (nazev, ulice, cislo_popisne, mesto, psc)
-VALUES ('Vezeni not cool', 'Semilaso', '257', 'Brno', '78032');
+VALUES ('Vezeni not cool', 'Semilaso', '257', 'Praha', '78032');
 
 INSERT INTO vezen (jmeno, rodne_cislo, pohlavi, cislo_cely, trest)
 VALUES ('Pepka Frajerka', '010101001', 'micka', '25', 'pohorsovani');
@@ -224,11 +224,17 @@ VALUES ('nůž', 'bodné', '200', '20');
 INSERT INTO predmet (nazev, druh, cena, hmotnost)
 VALUES ('kudla', 'bodné', '300', '25');
 
+INSERT INTO predmet (nazev, druh, cena, hmotnost)
+VALUES ('pistole', 'střelné', '3000', '250');
+
 INSERT INTO pecivo (nazev, druh, hmotnost, alergeny)
 VALUES ('rohlik', 'bile', '300', '1, 4, 8');
 
 INSERT INTO pecivo (nazev, druh, hmotnost, alergeny)
 VALUES ('bageta', 'bile', '300', '1, 3, 5');
+
+INSERT INTO pecivo (nazev, druh, hmotnost, alergeny)
+VALUES ('chleba', 'celozrnné', '700', '1, 3, 5');
 
 INSERT INTO paserak (jmeno, rodne_cislo, pohlavi)
 VALUES ('Jan Novak', '010101001', 'muž');
@@ -266,6 +272,9 @@ VALUES ('1', '2');
 INSERT INTO objednavka_vezen (id_objednavka, id_vezen)
 VALUES ('1', '2');
 
+INSERT INTO objednavka_vezen (id_objednavka, id_vezen)
+VALUES ('2', '2');
+
 INSERT INTO objednavka_paserak (id_objednavka, id_paserak)
 VALUES ('1', '2');
 
@@ -276,3 +285,31 @@ INSERT INTO mnozstvi (pocet, druh)
 VALUES ('4', 'vejce');
 
 
+--select příkazy
+--propojení 2 tabulek
+--vrátí informace o surovině a v jakém ID pečiva byla použita (šlo by zjistit i info o pečivu, ale momentálně to kvůli propojení pouze 2 tabulek není žádoucí)
+SELECT * FROM surovina JOIN surovina_pecivo ON surovina.id_surovina = surovina_pecivo.id_surovina;
+--vrátí informace o surovině a v jakém ID pečiva byla použita (šlo by zjistit i info o pečivu, ale momentálně to kvůli propojení pouze 2 tabulek není žádoucí)
+SELECT * FROM objednavka JOIN objednavka_paserak ON objednavka.id_objednavka = objednavka_paserak.id_objednavka);
+
+--propojení 3 tabulek
+--vrátí všechny informace o objednávkách a vězni, které daný vězeň provedl
+SELECT objednavka.*, vezen.* FROM objednavka JOIN objednavka_vezen ON objednavka.ID_objednavka = objednavka_vezen.ID_objednavka
+                        JOIN vezen ON objednavka_vezen.ID_vezen = vezen.ID_vezen;
+
+
+--GROUP BY agregační funkce
+--vrátí počet pečiv v jednotlivých druzích
+SELECT COUNT(id_pecivo), druh FROM pecivo GROUP BY druh;
+--vrátí součet cen jednotlivých předmětů podle jejich druhu
+SELECT SUM(cena), druh FROM predmet GROUP BY druh;
+
+
+--EXISTS
+--vrátí seznam zaměstnanců, kteří mají zaevidovanou směnu
+SELECT jmeno FROM zamestnanec WHERE EXISTS(SELECT id_zamestnanec FROM smena_zamestnanec WHERE zamestnanec.id_zamestnanec = smena_zamestnanec.id_zamestnanec);
+
+
+--IN
+--vrátí zaměstnance, kteří bydlí ve stejném městě, jako existuje nějaké vězení
+SELECT * FROM zamestnanec WHERE mesto IN (SELECT mesto FROM vezeni)
