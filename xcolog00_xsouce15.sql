@@ -290,7 +290,7 @@ VALUES ('4', 'vejce');
 --vrátí informace o surovině a v jakém ID pečiva byla použita (šlo by zjistit i info o pečivu, ale momentálně to kvůli propojení pouze 2 tabulek není žádoucí)
 SELECT * FROM surovina JOIN surovina_pecivo ON surovina.id_surovina = surovina_pecivo.id_surovina;
 --vrátí informace o surovině a v jakém ID pečiva byla použita (šlo by zjistit i info o pečivu, ale momentálně to kvůli propojení pouze 2 tabulek není žádoucí)
-SELECT * FROM objednavka JOIN objednavka_paserak ON objednavka.id_objednavka = objednavka_paserak.id_objednavka);
+SELECT * FROM objednavka JOIN objednavka_paserak ON objednavka.id_objednavka = objednavka_paserak.id_objednavka;
 
 --propojení 3 tabulek
 --vrátí všechny informace o objednávkách a vězni, které daný vězeň provedl
