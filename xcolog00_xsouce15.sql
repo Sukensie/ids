@@ -280,8 +280,11 @@ VALUES ('2', '2');
 INSERT INTO objednavka_paserak (id_objednavka, id_paserak)
 VALUES ('1', '2');
 
-
+-----------------------------------------------------------------
+--                           3. ČÁST                           --
+-----------------------------------------------------------------
 --select příkazy
+
 --propojení 2 tabulek
 --vrátí informace o surovině a v jakém ID pečiva byla použita (šlo by zjistit i info o pečivu, ale momentálně to kvůli propojení pouze 2 tabulek není žádoucí)
 SELECT * FROM surovina JOIN surovina_pecivo ON surovina.id_surovina = surovina_pecivo.id_surovina;
@@ -308,4 +311,87 @@ SELECT jmeno FROM zamestnanec WHERE EXISTS(SELECT id_zamestnanec FROM smena_zame
 
 --IN
 --vrátí zaměstnance, kteří bydlí ve stejném městě, jako existuje nějaké vězení
-SELECT * FROM zamestnanec WHERE mesto IN (SELECT mesto FROM vezeni)
+SELECT * FROM zamestnanec WHERE mesto IN (SELECT mesto FROM vezeni);
+
+
+-----------------------------------------------------------------
+--                           4. ČÁST                           --
+-----------------------------------------------------------------
+/*
+--triggery
+CREATE OR REPLACE TRIGGER custom
+    AFTER INSERT ON paserak
+    FOR EACH ROW
+    BEGIN
+        INSERT INTO paserak_vezeni (id_paserak, id_vezeni)
+        VALUES ( '1', '1');
+    END;
+
+INSERT INTO paserak (jmeno, rodne_cislo, pohlavi)
+VALUES ('Josef Pepa', '010101001', 'muž');
+
+SELECT * FROM PASERAK_VEZENI;
+*/
+
+
+--procedura
+/*
+CREATE OR REPLACE PROCEDURE vypis
+AS
+    nazev varchar2(256);
+BEGIN
+    SELECT * FROM OBJEDNAVKA;
+END;
+
+BEGIN
+    vypis;
+END;
+*/
+--materializovaný pohled
+DROP MATERIALIZED VIEW pohled;
+
+CREATE MATERIALIZED VIEW list_paseraku_vezeni AS
+    SELECT paserak.jmeno, vezeni.nazev FROM paserak_vezeni LEFT JOIN paserak on paserak_vezeni.id_paserak = paserak.id_paserak
+        LEFT JOIN vezeni on paserak_vezeni.id_vezeni = vezeni.id_vezeni;
+
+
+--získání dat z pohledu
+SELECT * FROM list_paseraku_vezeni;
+
+--explain plan
+EXPLAIN PLAN FOR
+    SELECT jmeno, rodne_cislo, zacatek, konec, misto, COUNT(*) FROM zamestnanec
+    LEFT JOIN smena_zamestnanec on zamestnanec.id_zamestnanec = smena_zamestnanec.id_zamestnanec
+    LEFT JOIN smena on smena_zamestnanec.id_smena = smena.id_smena
+    GROUP BY jmeno, rodne_cislo, zacatek, konec, misto;
+
+--index
+--index pro zaměstnance pro rychlejší vyhledávání podle rodného čísla
+CREATE INDEX idx ON zamestnanec (rodne_cislo);
+
+
+
+--přístupová práva
+GRANT ALL ON surovina TO xcolog00;
+GRANT ALL ON pecivo  TO xcolog00;
+GRANT ALL ON predmet TO xcolog00;
+GRANT ALL ON objednavka TO xcolog00;
+GRANT ALL ON vezen TO xcolog00;
+GRANT ALL ON smena TO xcolog00;
+GRANT ALL ON zamestnanec  TO xcolog00;
+GRANT ALL ON paserak TO xcolog00;
+GRANT ALL ON vezeni TO xcolog00;
+
+GRANT ALL ON objednavka_paserak TO xcolog00;
+GRANT ALL ON objednavka_predmet TO xcolog00;
+GRANT ALL ON objednavka_vezen TO xcolog00;
+GRANT ALL ON paserak_vezeni TO xcolog00;
+GRANT ALL ON pecivo_objednavka TO xcolog00;
+GRANT ALL ON smena_zamestnanec TO xcolog00;
+GRANT ALL ON surovina_pecivo TO xcolog00;
+GRANT ALL ON vezeni_smena TO xcolog00;
+GRANT ALL ON mnozstvi TO xcolog00;
+
+GRANT ALL ON list_paseraku_vezeni TO xcolog00;
+
+
