@@ -317,22 +317,29 @@ SELECT * FROM zamestnanec WHERE mesto IN (SELECT mesto FROM vezeni);
 -----------------------------------------------------------------
 --                           4. ČÁST                           --
 -----------------------------------------------------------------
-/*
+
 --triggery
-CREATE OR REPLACE TRIGGER custom
-    AFTER INSERT ON paserak
+CREATE OR REPLACE TRIGGER assign_new_paserak_to_vezeni1
+    AFTER INSERT OR UPDATE ON paserak
     FOR EACH ROW
     BEGIN
         INSERT INTO paserak_vezeni (id_paserak, id_vezeni)
-        VALUES ( '1', '1');
+        VALUES ( :new.id_paserak, '1');
     END;
 
 INSERT INTO paserak (jmeno, rodne_cislo, pohlavi)
 VALUES ('Josef Pepa', '010101001', 'muž');
 
-SELECT * FROM PASERAK_VEZENI;
-*/
+CREATE OR REPLACE TRIGGER assign
+    AFTER INSERT OR UPDATE ON smena
+    FOR EACH ROW
+    BEGIN
+        INSERT INTO smena_zamestnanec (id_smena, id_zamestnanec)
+        VALUES ( :new.id_smena, '1');
+    END;
 
+INSERT INTO smena (zacatek, konec, misto)
+VALUES (TO_DATE('2021-04-12', 'YYYY-MM-DD'), TO_DATE('2021-04-13', 'YYYY-MM-DD'), 'Cejl');
 
 --procedura
 /*
@@ -367,7 +374,15 @@ EXPLAIN PLAN FOR
 
 --index
 --index pro zaměstnance pro rychlejší vyhledávání podle rodného čísla
+DROP INDEX  idx;
 CREATE INDEX idx ON zamestnanec (rodne_cislo);
+
+--explain plan
+EXPLAIN PLAN FOR
+    SELECT jmeno, rodne_cislo, zacatek, konec, misto, COUNT(*) FROM zamestnanec
+    LEFT JOIN smena_zamestnanec on zamestnanec.id_zamestnanec = smena_zamestnanec.id_zamestnanec
+    LEFT JOIN smena on smena_zamestnanec.id_smena = smena.id_smena
+    GROUP BY jmeno, rodne_cislo, zacatek, konec, misto;
 
 
 
