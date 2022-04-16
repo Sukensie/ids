@@ -367,23 +367,26 @@ SELECT * FROM list_paseraku_vezeni;
 
 --explain plan
 EXPLAIN PLAN FOR
-    SELECT jmeno, rodne_cislo, zacatek, konec, misto, COUNT(*) FROM zamestnanec
+    SELECT jmeno, rodne_cislo, COUNT(*) AS pocet_smen FROM zamestnanec
     LEFT JOIN smena_zamestnanec on zamestnanec.id_zamestnanec = smena_zamestnanec.id_zamestnanec
     LEFT JOIN smena on smena_zamestnanec.id_smena = smena.id_smena
-    GROUP BY jmeno, rodne_cislo, zacatek, konec, misto;
+    GROUP BY jmeno, rodne_cislo;
+
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
 
 --index
 --index pro zaměstnance pro rychlejší vyhledávání podle rodného čísla
 DROP INDEX  idx;
-CREATE INDEX idx ON zamestnanec (rodne_cislo);
+CREATE INDEX idx ON smena_zamestnanec (id_zamestnanec);
 
 --explain plan
 EXPLAIN PLAN FOR
-    SELECT jmeno, rodne_cislo, zacatek, konec, misto, COUNT(*) FROM zamestnanec
+    SELECT jmeno, rodne_cislo, COUNT(*) AS pocet_smen FROM zamestnanec
     LEFT JOIN smena_zamestnanec on zamestnanec.id_zamestnanec = smena_zamestnanec.id_zamestnanec
     LEFT JOIN smena on smena_zamestnanec.id_smena = smena.id_smena
-    GROUP BY jmeno, rodne_cislo, zacatek, konec, misto;
+    GROUP BY jmeno, rodne_cislo;
 
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
 
 
 --přístupová práva
