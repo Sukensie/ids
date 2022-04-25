@@ -341,21 +341,49 @@ CREATE OR REPLACE TRIGGER assign
 INSERT INTO smena (zacatek, konec, misto)
 VALUES (TO_DATE('2021-04-12', 'YYYY-MM-DD'), TO_DATE('2021-04-13', 'YYYY-MM-DD'), 'Cejl');
 
---procedura
-/*
-CREATE OR REPLACE PROCEDURE vypis
-AS
-    nazev varchar2(256);
+--procedury
+CREATE OR REPLACE PROCEDURE vypis_predmetu AS
+CURSOR predmety_cursor is SELECT * FROM PREDMET;
+    predmety_output predmet%rowtype;
 BEGIN
-    SELECT * FROM OBJEDNAVKA;
+    OPEN predmety_cursor;
+    LOOP
+        FETCH predmety_cursor INTO predmety_output;
+        exit when predmety_cursor%notfound;
+        DBMS_OUTPUT.PUT_LINE(predmety_output.nazev);
+    end loop;
+    close predmety_cursor;
+end;
+/
+
+BEGIN
+    vypis_predmetu();
+END;
+
+CREATE OR REPLACE PROCEDURE get_current_state (order_id NUMBER) IS
+curr_row OBJEDNAVKA%rowtype;
+BEGIN
+dbms_output.enable();
+SELECT * INTO curr_row FROM OBJEDNAVKA WHERE  id_objednavka = order_id;
+dbms_output.put_line('Současný stav je: ' || curr_row.stav);
+EXCEPTION WHEN NO_DATA_FOUND THEN
+	BEGIN
+		DBMS_OUTPUT.put_line('ID nebylo nalezeno.');
+	END;
+END;
+/
+
+BEGIN
+    get_current_state(1);
 END;
 
 BEGIN
-    vypis;
+    get_current_state(7);
 END;
-*/
+
 --materializovaný pohled
-DROP MATERIALIZED VIEW pohled;
+
+DROP MATERIALIZED VIEW list_paseraku_vezeni;
 
 CREATE MATERIALIZED VIEW list_paseraku_vezeni AS
     SELECT paserak.jmeno, vezeni.nazev FROM paserak_vezeni LEFT JOIN paserak on paserak_vezeni.id_paserak = paserak.id_paserak
@@ -376,7 +404,7 @@ SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
 
 --index
 --index pro zaměstnance pro rychlejší vyhledávání podle rodného čísla
-DROP INDEX  idx;
+--DROP INDEX  idx;
 CREATE INDEX idx ON smena_zamestnanec (id_zamestnanec);
 
 --explain plan
@@ -411,5 +439,4 @@ GRANT ALL ON vezeni_smena TO xcolog00;
 GRANT ALL ON mnozstvi TO xcolog00;
 
 GRANT ALL ON list_paseraku_vezeni TO xcolog00;
-
 
