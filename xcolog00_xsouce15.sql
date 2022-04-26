@@ -394,6 +394,7 @@ CREATE MATERIALIZED VIEW list_paseraku_vezeni AS
 SELECT * FROM list_paseraku_vezeni;
 
 --explain plan
+DROP INDEX  idx;
 EXPLAIN PLAN FOR
     SELECT jmeno, rodne_cislo, COUNT(*) AS pocet_smen FROM zamestnanec
     LEFT JOIN smena_zamestnanec on zamestnanec.id_zamestnanec = smena_zamestnanec.id_zamestnanec
@@ -404,7 +405,7 @@ SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
 
 --index
 --index pro zaměstnance pro rychlejší vyhledávání podle rodného čísla
---DROP INDEX  idx;
+
 CREATE INDEX idx ON smena_zamestnanec (id_zamestnanec);
 
 --explain plan
